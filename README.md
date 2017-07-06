@@ -1,4 +1,4 @@
-<img src="https://media.github.groupondev.com/user/3095/files/14a2fe9e-2f0c-11e7-9cf9-f186c769055d" height="100"/>
+
 
 Self-contained layered data pipelines within Spark and python using luigi
 
