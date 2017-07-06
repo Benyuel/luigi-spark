@@ -1,0 +1,47 @@
+#!~/anaconda3/bin/python
+import sys
+import os
+import luigi
+repo=luigi.configuration.get_config().get('repo', 'dir')
+sys.path.append(os.path.expanduser(repo))
+import getpass
+import requests
+import lxml, lxml.html
+
+
+def yarn_log_search(search_string, 
+                    log_types=['stderr','stdout'], 
+                    user=getpass.getuser(), 
+                    rm=luigi.configuration.get_config().get('yarn', 'rm'), 
+                    job_history_port=luigi.configuration.get_config().get('yarn', 'job_history_port'), 
+                    log_container_port=luigi.configuration.get_config().get('yarn', 'log_container_port')):
+    ''' retrieve yarn logs for the first app that matches the given search_string, user, log_type '''
+    # log_types = launch_container.sh, directory.info, stderr, stdout
+    app_list = requests.get('{0}/ws/v1/cluster/apps?user={1}'.format(rm, user)).json()
+    print('searching app logs for {0}'.format(search_string))
+    for app in sorted(app_list['apps']['app'], key=lambda x: x['finishedTime'], reverse=True):
+        #search through a list of applications sorted by most recently finished
+        app_json = requests.get('{0}/ws/v1/cluster/apps/{1}?user={2}'.format(rm, app['id'], user)).json()
+        if 'app' not in app_json:
+            continue
+        if 'amContainerLogs' not in app_json['app']:
+            continue
+        logs_redirect = app_json['app']['amContainerLogs']
+        logs_node = logs_redirect.replace('http://','').split(':')[0]
+        logs_container = logs_redirect.split('/')[-2]
+        logs = {t:requests.get(rm.rsplit(':',1)[0] + ':' + job_history_port + '/jobhistory/logs/' + logs_node + ':' + log_container_port + '/' + logs_container + '/' + logs_container + '/' + user + '/' + t + '/?start=0').text for t in log_types}
+        if search_string in ''.join([logs[k] for k in logs]):
+            return app['id'],logs
+
+
+
+
+if __name__ == '__main__':
+    args = sys.argv[1:]
+    search_string = args[0]
+    app,logs = yarn_log_search(search_string)
+    for t in logs:
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+        print(t); print(logs[t])
+        print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    print('applicationId:' + str(app))

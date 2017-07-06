@@ -1,0 +1,44 @@
+#!/bin/sh
+submit=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*submit[:space:]*=" | sed s/.*=[:space:]*//)
+profile=$(cat ../luigi.cfg | sed -n /^\[bash\]/,/^\[.*\]/p | grep "^[:space:]*profile[:space:]*=" | sed s/.*=[:space:]*//)
+python_dir=$(cat ../luigi.cfg | sed -n /^\[python\]/,/^\[.*\]/p | grep "^[:space:]*dir[:space:]*=" | sed s/.*=[:space:]*//)
+pyspark_python_cluster=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*pyspark_python_cluster[:space:]*=" | sed s/.*=[:space:]*//)
+config_local=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*config_local[:space:]*=" | sed s/.*=[:space:]*//)
+home=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*home[:space:]*=" | sed s/.*=[:space:]*//)
+master=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*master[:space:]*=" | sed s/.*=[:space:]*//)
+deploy_mode="cluster"
+queue=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*queue[:space:]*=" | sed s/.*=[:space:]*//)
+archives_cluster=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*archives_cluster[:space:]*=" | sed s/.*=[:space:]*//)
+jars=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*jars[:space:]*=" | sed s/.*=[:space:]*//)
+files=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*files[:space:]*=" | sed s/.*=[:space:]*//)
+repo=$(cat ../luigi.cfg | sed -n /^\[repo\]/,/^\[.*\]/p | grep "^[:space:]*dir[:space:]*=" | sed s/.*=[:space:]*//)
+
+echo "enter your sql here"
+echo "hit Ctrl-D when done"
+echo "note this is only for ddl statements (i.e. you will not get results)"
+echo "--------------------------------------------------------------------"
+sql=$(cat)
+echo "--------------------------------------------------------------------"
+echo "running sql..."
+echo "beware -- check yarn logs if unsure if successful"
+echo "--------------------------------------------------------------------"
+
+source $profile
+cd $python_dir/env
+
+export PYSPARK_PYTHON=$pyspark_python_cluster
+export LUIGI_CONFIG_PATH=$config_local
+export SPARK_HOME=$home
+$submit \
+        --master $master \
+        --deploy-mode cluster \
+        --queue $queue  \
+        --conf spark.yarn.appMasterEnv.PYSPARK_PYTHON=$pyspark_python_cluster  \
+        --archives $archives_cluster  \
+        --jars $jars\
+        --files $files \
+        $repo/hive.py \
+        SparkSQLTask \
+        --sql "$sql" \
+        --context spark \
+        --unique-identifier 8cc89ad15b154d959a4779b83cdf5370

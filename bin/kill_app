@@ -1,0 +1,20 @@
+#!/bin/sh
+while getopts s:q:t: option
+do
+ case "${option}"
+ in
+ s) SEARCHSTRING=${OPTARG};;
+ q) QUEUE=${OPTARG};;
+ t) STATE=${OPTARG};;
+ esac
+done
+
+echo "killing all apps matching..."
+echo "queue:"
+echo $QUEUE
+echo "state:"
+echo $STATE
+echo "search string:"
+echo $SEARCHSTRING
+
+yarn application -list | grep $SEARCHSTRING | awk -v state="$STATE" -v queue="$QUEUE" '$6 == state && $5 == queue { print $1 }' | xargs -L1 yarn application -kill

@@ -1,0 +1,14 @@
+#!/bin/sh
+echo "setting up this repo for production usage..."
+
+DEFAULT_LUIGI_CONFIG_PATH_LOCAL=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*config_local[:space:]*=" | sed s/.*=[:space:]*//)
+DEFAULT_LUIGI_CONFIG_PATH_HDFS=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*config_hdfs[:space:]*=" | sed s/.*=[:space:]*//)
+
+hadoop fs -rm $DEFAULT_LUIGI_CONFIG_PATH_HDFS
+hadoop fs -put $DEFAULT_LUIGI_CONFIG_PATH_LOCAL $DEFAULT_LUIGI_CONFIG_PATH_HDFS
+
+luigid --background --pidfile ../pidfile --logdir ../logs --state-path ../statefile
+
+python3 setup.py install
+
+python3 pipeline.py PythonENV

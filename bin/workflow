@@ -1,0 +1,24 @@
+#!/bin/sh
+profile=$(cat ../luigi.cfg | sed -n /^\[bash\]/,/^\[.*\]/p | grep "^[:space:]*profile[:space:]*=" | sed s/.*=[:space:]*//)
+config_local=$(cat ../luigi.cfg | sed -n /^\[spark\]/,/^\[.*\]/p | grep "^[:space:]*config_local[:space:]*=" | sed s/.*=[:space:]*//)
+repo=$(cat ../luigi.cfg | sed -n /^\[repo\]/,/^\[.*\]/p | grep "^[:space:]*dir[:space:]*=" | sed s/.*=[:space:]*//)
+
+module=
+while [ -z $module ]
+do
+    echo -n 'Module (i.e. tokyo_import)? '
+    read module
+done
+
+task=
+while [ -z $task ]
+do
+    echo -n 'Task to run? '
+    read task
+done
+
+source $profile
+export LUIGI_CONFIG_PATH=$config_local
+cd $repo/workflows
+echo "starting module via luigi..."
+python3 -m luigi --module $module $task --workers 10

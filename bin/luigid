@@ -1,0 +1,5 @@
+#!/bin/sh
+echo "starting luigi daemon..."
+
+luigid --background --pidfile ../pidfile --logdir ../logs --state-path ../statefile
+

@@ -1,0 +1,6 @@
+#!/bin/sh
+echo "creating required python env..."
+repo=$(cat ../luigi.cfg | sed -n /^\[repo\]/,/^\[.*\]/p | grep "^[:space:]*dir[:space:]*=" | sed s/.*=[:space:]*//)
+
+cd $repo
+python3 pipeline.py PythonENV

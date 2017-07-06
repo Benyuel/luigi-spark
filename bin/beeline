@@ -1,0 +1,11 @@
+#!/bin/sh
+user=$(cat ../luigi.cfg | sed -n /^\[hive\]/,/^\[.*\]/p | grep "^[:space:]*user[:space:]*=" | sed s/.*=[:space:]*//)
+password=$(cat ../luigi.cfg | sed -n /^\[hive\]/,/^\[.*\]/p | grep "^[:space:]*password[:space:]*=" | sed s/.*=[:space:]*//)
+server=$(cat ../luigi.cfg | sed -n /^\[hive\]/,/^\[.*\]/p | grep "^[:space:]*server[:space:]*=" | sed s/.*=[:space:]*//)
+port=$(cat ../luigi.cfg | sed -n /^\[hive\]/,/^\[.*\]/p | grep "^[:space:]*port[:space:]*=" | sed s/.*=[:space:]*//)
+cmd=$(cat ../luigi.cfg | sed -n /^\[hive\]/,/^\[.*\]/p | grep "^[:space:]*command[:space:]*=" | sed s/.*=[:space:]*//)
+
+echo "starting beeline - connecting to hive server..."
+
+$cmd -u "jdbc:hive2://$server:$port" -n $user -p $password
+
