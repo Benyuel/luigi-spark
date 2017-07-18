@@ -2,6 +2,7 @@
 
 Self-contained layered data pipelines within Spark and python using luigi
 
+Using `pipeline.py` to submit your spark app, you can have traditional luigi task trees run all within a pyspark context and handle resulting task statuses in yarn logs.  
 
 #### Install
 
